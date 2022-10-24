@@ -2,10 +2,10 @@ from typing import Dict, Type
 from dataclasses import dataclass
 
 
-@dataclass(init=True)
+@dataclass(repr=False, eq=False)
 class InfoMessage:
     """Информационное сообщение о тренировке.
-    определяет атрибуты такие как:
+    Принимает атрибуты:
     training_type: str - тип тренировки,
     duration: float - длительность тренировки в часах,
     distance: float - расстояние преодолённое за тренировку в км.,
@@ -21,7 +21,7 @@ class InfoMessage:
     def get_message(self) -> str:
         """Функция выводит информационное сообщение о тренировке.
         возвращает f-строку с данными типа str,
-        Атрибуты функции: training_type: str, duration: float,
+        Атрибуты метода: training_type: str, duration: float,
         distance: float, speed: float, calories: float."""
         return (f'Тип тренировки: {self.training_type}; '
                 f'Длительность: {self.duration:.3f} ч.; '
@@ -49,7 +49,7 @@ class Training:
                  duration: float,
                  weight: float
                  ) -> None:
-        """Определяет атрибуты Базового класса, такие как:
+        """Принимает атрибуты Базового класса, такие как:
         action: int - кол-во совершенных действий(шагов/гребков),
         duration: float - длительность тренировки в формате часа,
         weight: float - вес пользователя в килограммах."""
@@ -61,34 +61,20 @@ class Training:
         """Получить дистанцию в км.
         возвращает данные типа float,
         Атрибуты: action: int,
-        константы LEN_STEP: float, M_IN_KM: int"""
+        константы LEN_STEP: float, M_IN_KM: int."""
         return ((self.action * self.LEN_STEP) / self.M_IN_KM)
 
     def get_mean_speed(self) -> float:
         """Получить среднюю скорость движения.
         Возвращает данные типа float,
         Атрибуты: get_distance() -> float,
-        duration: float"""
+        duration: float."""
         return (self.get_distance() / self.duration)
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий.
-        Возвращает данные типа float"""
+        Возвращает данные типа float."""
         pass
-
-    def training_duration_in_min(self) -> float:
-        """После замены операци умножения на эту формулу в функциях
-        pytest выдаёт ошибки в результатах - триллиардные и миллионные доли
-        числа в ответе считались неправильно.
-        эти проблемы возникали и раньше, но мне удалось решить
-        их путём двухдневного поиска ответов в обсуждениях чата project, и
-        обращения за помощью к наставникам. В один момент я просто наудачу
-        скопировал кусок кода который в обсуждении написал наставник
-        (код на вид вообще не отличался от моего, ни знаком, ни скобкой)
-        для функции get_spent_calories и это каким-то чудом помогло,
-        триллиардная доля числа посчиталась. Если это не критично,
-        ради бога, давайте оставим так"""
-        return (self.duration * self.MIN_IN_H)
 
     def show_training_info(self) -> InfoMessage:
         """Вернуть информационное сообщение о выполненной тренировке.
@@ -107,11 +93,15 @@ class Running(Training):
     """Тренировка: бег."""
 
     CALORIES_MEAN_SPEED_MULTIPLIER: int = 18
-    CALORIES_MEAN_SPEED_SHIFT: int = 1.79
+    CALORIES_MEAN_SPEED_SHIFT: float = 1.79
 
     def get_spent_calories(self) -> float:
         """Вычисляет кол-во затраченных клорий,
-        возвращает данные типа float"""
+        возвращает данные типа float
+        Принимает на вход атрибуты:
+        ALORIES_MEAN_SPEED_MULTIPLIER: int,
+        CALORIES_MEAN_SPEED_SHIFT: float, weight: float,
+        M_IN_KM: int, duration: float."""
         return ((self.CALORIES_MEAN_SPEED_MULTIPLIER * self.get_mean_speed()
                 + self.CALORIES_MEAN_SPEED_SHIFT) * self.weight / self.M_IN_KM
                 * self.duration * self.MIN_IN_H)
@@ -121,7 +111,7 @@ class SportsWalking(Training):
     """Тренировка: спортивная ходьба.
     Определяет новые константы, такие как:
     CALORIES_WEIGHT_MULTIPLIER: float,
-    CALORIES_SPEED_HEIGHT_MULTIPLIER: float.
+    CALORIES_SPEED_HEIGHT_MULTIPLIER: int.
     KMH_IN_MSEC: float - коэффициент перевода из км/ч в м/сек
     CM_IN_M: int - для перевода сантиметров в метры."""
 
@@ -136,8 +126,9 @@ class SportsWalking(Training):
                  weight: float,
                  height: float
                  ) -> None:
-        """Переопределяет атрибуты родительского класса.
-        А именно: self.height: float - рост пользователя в сантиметрах"""
+        """Получает на вход атриуты:.
+        self.height: float - рост пользователя в сантиметрах
+        action: int, duration: float, weight: float."""
         super().__init__(action, duration, weight)
         self.height = height
 
@@ -165,7 +156,7 @@ class Swimming(Training):
     CALORIES_WEIGHT_MULTIPLIER: float нужны для функции подсчета каллорий."""
     LEN_STEP: float = 1.38
     CALORIES_MEAN_SPEED_SHIFT: float = 1.1
-    CALORIES_WEIGHT_MULTIPLIER: float = 2
+    CALORIES_WEIGHT_MULTIPLIER: int = 2
 
     def __init__(self,
                  action: int,
@@ -174,8 +165,8 @@ class Swimming(Training):
                  length_pool: float,
                  count_pool: float
                  ) -> None:
-        """Переопределяет атрибуты родительского класса,
-        конкретно length_pool: float - длинна бассейна в метрах,
+        """Получает на вход атрибуты:,
+        length_pool: float - длинна бассейна в метрах,
         count_pool: float - кол-во раз как пользователь переплыл бассейн."""
         super().__init__(action,
                          duration,
@@ -194,8 +185,7 @@ class Swimming(Training):
                 / self.M_IN_KM / self.duration)
 
     def get_spent_calories(self) -> float:
-        """Переопределяет функцию подсчёта каллорий
-        родительского класса.
+        """Подсчёт потраченных каллорий
         В вычислениях использует константы определённые в классе -
         такие как CALORIES_MEAN_SPEED_SHIFT: float,
         CALORIES_WEIGHT_MULTIPLIER: float,
